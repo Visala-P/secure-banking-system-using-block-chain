@@ -3,9 +3,7 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
-const isGitHubActions = process.env.GITHUB_ACTIONS === 'true'
-const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1]
-const pagesBase = isGitHubActions && repositoryName ? `/${repositoryName}/` : '/'
+const pagesBase = process.env.NODE_ENV === 'production' ? '/secure-banking-system-using-block-chain/' : '/'
 
 export default defineConfig({
   base: pagesBase,
