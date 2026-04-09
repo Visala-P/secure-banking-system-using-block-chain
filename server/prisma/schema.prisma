@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+ datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  AUDITOR
+}
+
+enum VerificationStatus {
+  verified
+  pending
+  rejected
+}
+
+enum VerificationMethod {
+  automated
+  manual
+}
+
+enum DocumentType {
+  aadhaar
+  pan
+  passport
+  driverLicense
+  selfie
+  other
+}
+
+enum DocumentStatus {
+  processing
+  verified
+  rejected
+  pending
+}
+
+model User {
+  id                String               @id @default(cuid())
+  name              String
+  email             String               @unique
+  passwordHash      String
+  role              Role                  @default(USER)
+  accountNumber     String               @unique
+  kycStatus         VerificationStatus   @default(pending)
+  verificationCount Int                   @default(0)
+  lastActivity      DateTime?             @db.Timestamp(6)
+  joinedDate        DateTime              @default(now())
+  phone             String?
+  address           String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  verifications     VerificationRecord[]
+  documents         DocumentUpload[]
+  activities        ActivityLog[]
+}
+
+model VerificationRecord {
+  id                 String               @id @default(cuid())
+  userId             String
+  user               User                 @relation(fields: [userId], references: [id])
+  action             String
+  status             VerificationStatus   @default(pending)
+  documentType       DocumentType?
+  timestamp          DateTime             @default(now())
+  verifiedBy         String?
+  notes              String?
+  autoVerified       Boolean              @default(false)
+  confidence         Float?
+  verificationMethod VerificationMethod?  @default(automated)
+  block              BlockchainBlock?
+  documentUploads    DocumentUpload[]
+  createdAt          DateTime             @default(now())
+}
+
+model BlockchainBlock {
+  id            String   @id @default(cuid())
+  blockNumber   Int      @unique
+  hash          String   @unique
+  previousHash  String
+  nonce         Int
+  data          Json
+  timestamp     DateTime @default(now())
+  verificationId String?  @unique
+  verification   VerificationRecord? @relation(fields: [verificationId], references: [id])
+  createdAt     DateTime @default(now())
+}
+
+model DocumentUpload {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  verificationId  String?
+  verification    VerificationRecord? @relation(fields: [verificationId], references: [id])
+  type            DocumentType
+  status          DocumentStatus     @default(processing)
+  fileName        String
+  filePath        String
+  fileSize        Int
+  checksum        String?
+  uploadedAt      DateTime           @default(now())
+  processedAt     DateTime?
+  processingNotes String?
+}
+
+model ActivityLog {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  action       String
+  status       VerificationStatus
+  referenceId  String?
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+}
