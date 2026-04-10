@@ -221,6 +221,28 @@ This repo now ships with a production-ready Node/Express backend inside [`server
 
 Wire the React app’s contexts/services to these endpoints to replace `mockData.ts` and the simulated `verificationEngine.ts` logic with live blockchain-backed records.
 
+## 🌐 Full-Stack Deployment (Frontend + Backend + DB)
+
+This repo now includes a Render blueprint file at [render.yaml](render.yaml) that deploys:
+
+1. `securebank-api` (Node/Express backend from [server](server))
+2. `securebank-db` (PostgreSQL)
+3. `securebank-web` (Vite frontend static site)
+
+### One-time setup
+
+1. In Render, click **New +** → **Blueprint**.
+2. Connect this GitHub repo and select branch `main`.
+3. Render will detect [render.yaml](render.yaml) and provision all 3 services.
+4. After first deploy, open the frontend URL from Render (`securebank-web`).
+
+### Notes
+
+1. Backend health check is `/health`.
+2. Frontend is configured to call `https://securebank-api.onrender.com/api`.
+3. If your backend service URL differs, update `VITE_API_BASE_URL` in [render.yaml](render.yaml).
+4. Prisma migrations are applied automatically on backend start via `npm run prisma:deploy`.
+
 ## 📄 License
 
 This is a demo project for educational purposes.
